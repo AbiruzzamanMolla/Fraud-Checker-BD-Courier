@@ -64,46 +64,54 @@ readonly class RedxService implements CourierServiceInterface
 
     public function getDeliveryStats(string $queryPhone): array
     {
-        CourierFraudCheckerHelper::validatePhoneNumber($queryPhone);
+        try {
+            CourierFraudCheckerHelper::validatePhoneNumber($queryPhone);
 
-        $accessToken = $this->getAccessToken();
+            $accessToken = $this->getAccessToken();
 
-        if (!$accessToken) {
-            return ['error' => 'Login failed or unable to get access token'];
-        }
+            if (!$accessToken) {
+                return ['error' => 'Login failed or unable to get access token from Redx'];
+            }
 
-        $response = Http::withHeaders([
-            'User-Agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)',
-            'Accept' => 'application/json, text/plain, */*',
-            'Content-Type' => 'application/json',
-            'Authorization' => 'Bearer ' . $accessToken,
-        ])->get("https://redx.com.bd/api/redx_se/admin/parcel/customer-success-return-rate?phoneNumber=88{$queryPhone}");
+            $response = Http::withHeaders([
+                'User-Agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)',
+                'Accept' => 'application/json, text/plain, */*',
+                'Content-Type' => 'application/json',
+                'Authorization' => 'Bearer ' . $accessToken,
+            ])->get("https://redx.com.bd/api/redx_se/admin/parcel/customer-success-return-rate?phoneNumber=88{$queryPhone}");
 
-        if ($response->successful()) {
-            $object = $response->json();
+            if ($response->successful()) {
+                $object = $response->json();
 
-            $success = (int)($object['data']['deliveredParcels'] ?? 0);
-            $total = (int)($object['data']['totalParcels'] ?? 0);
-            $cancel = max(0, $total - $success);
-            $success_ratio = $total > 0 ? round(($success / $total) * 100, 2) : 0;
+                $success = (int)($object['data']['deliveredParcels'] ?? 0);
+                $total = (int)($object['data']['totalParcels'] ?? 0);
+                $cancel = max(0, $total - $success);
+                $success_ratio = $total > 0 ? round(($success / $total) * 100, 2) : 0;
+
+                return [
+                    'success' => $success,
+                    'cancel' => $cancel,
+                    'total' => $total,
+                    'success_ratio' => $success_ratio,
+                ];
+            } elseif ($response->status() === 401) {
+                Cache::forget($this->cacheKey);
+                return ['error' => 'Access token expired or invalid for Redx. Please retry.', 'status' => 401];
+            }
 
             return [
-                'success' => $success,
-                'cancel' => $cancel,
-                'total' => $total,
-                'success_ratio' => $success_ratio,
+                'success' => 0,
+                'cancel' => 0,
+                'total' => 0,
+                'success_ratio' => 0,
+                'error' => 'Threshold hit, wait a minute for Redx',
+                'status' => $response->status(),
             ];
-        } elseif ($response->status() === 401) {
-            Cache::forget($this->cacheKey);
-            return ['error' => 'Access token expired or invalid. Please retry.', 'status' => 401];
+        } catch (\Exception $e) {
+            return [
+                'error' => 'An error occurred while processing Redx request',
+                'message' => $e->getMessage()
+            ];
         }
-
-        return [
-            'success' => 0,
-            'cancel' => 0,
-            'total' => 0,
-            'success_ratio' => 0,
-            'error' => 'Threshold hit, wait a minute',
-        ];
     }
 }
