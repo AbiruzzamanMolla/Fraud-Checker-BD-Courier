@@ -1,0 +1,65 @@
+{
+  "name": "azmolla/fraud-checker-bd-courier",
+  "description": "A fraud detection tool for e-commerce platforms to analyze customer order behavior across Steadfast and Pathao couriers.",
+  "type": "library",
+  "license": "GPL-3.0",
+  "keywords": [
+    "fraud detection",
+    "e-commerce",
+    "order tracking",
+    "courier",
+    "delivery",
+    "customer behavior",
+    "fraud checker",
+    "pathao",
+    "steadfast courier",
+    "shipping",
+    "order management",
+    "fraud prevention",
+    "order cancellation",
+    "Laravel package",
+    "e-commerce fraud",
+    "order status",
+    "API integration",
+    "order verification",
+    "Laravel fraud checker",
+    "delivery tracking"
+  ],
+  "autoload": {
+    "psr-4": {
+      "Azmolla\\FraudCheckerBdCourier\\": "src/"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "Azmolla\\FraudCheckerBdCourier\\Tests\\": "tests/"
+    }
+  },
+  "extra": {
+    "laravel": {
+      "providers": [
+        "Azmolla\\FraudCheckerBdCourier\\FraudCheckerBdCourierServiceProvider"
+      ],
+      "aliases": {
+        "FraudCheckerBdCourier": "Azmolla\\FraudCheckerBdCourier\\Facade\\FraudCheckerBdCourierFacade"
+      }
+    }
+  },
+  "authors": [
+    {
+      "name": "Azmolla"
+    }
+  ],
+  "minimum-stability": "dev",
+  "require": {
+    "php": "^7.3|^8.0",
+    "illuminate/support": "^8.0",
+    "illuminate/http": "^8.0",
+    "guzzlehttp/guzzle": "^7.0.1"
+  },
+  "require-dev": {
+    "orchestra/testbench": "^6.0",
+    "phpunit/phpunit": "^9.5",
+    "guzzlehttp/promises": "1.5.3"
+  }
+}

@@ -1,0 +1,43 @@
+
+Deprecated: Mockery::formatArgs(): Implicitly marking parameter $arguments as nullable is deprecated, the explicit nullable type must be used instead in J:\Web Development\abir\package\Fraud-Checker-BD-Courier\vendor\mockery\mockery\library\Mockery.php on line 536
+
+Deprecated: Mockery::formatObjects(): Implicitly marking parameter $objects as nullable is deprecated, the explicit nullable type must be used instead in J:\Web Development\abir\package\Fraud-Checker-BD-Courier\vendor\mockery\mockery\library\Mockery.php on line 612
+
+Deprecated: GuzzleHttp\Promise\queue(): Implicitly marking parameter $assign as nullable is deprecated, the explicit nullable type must be used instead in J:\Web Development\abir\package\Fraud-Checker-BD-Courier\vendor\guzzlehttp\promises\src\functions.php on line 24
+
+Deprecated: GuzzleHttp\Promise\each(): Implicitly marking parameter $onFulfilled as nullable is deprecated, the explicit nullable type must be used instead in J:\Web Development\abir\package\Fraud-Checker-BD-Courier\vendor\guzzlehttp\promises\src\functions.php on line 260
+
+Deprecated: GuzzleHttp\Promise\each(): Implicitly marking parameter $onRejected as nullable is deprecated, the explicit nullable type must be used instead in J:\Web Development\abir\package\Fraud-Checker-BD-Courier\vendor\guzzlehttp\promises\src\functions.php on line 260
+
+Deprecated: GuzzleHttp\Promise\each_limit(): Implicitly marking parameter $onFulfilled as nullable is deprecated, the explicit nullable type must be used instead in J:\Web Development\abir\package\Fraud-Checker-BD-Courier\vendor\guzzlehttp\promises\src\functions.php on line 285
+
+Deprecated: GuzzleHttp\Promise\each_limit(): Implicitly marking parameter $onRejected as nullable is deprecated, the explicit nullable type must be used instead in J:\Web Development\abir\package\Fraud-Checker-BD-Courier\vendor\guzzlehttp\promises\src\functions.php on line 285
+
+Deprecated: GuzzleHttp\Promise\each_limit_all(): Implicitly marking parameter $onFulfilled as nullable is deprecated, the explicit nullable type must be used instead in J:\Web Development\abir\package\Fraud-Checker-BD-Courier\vendor\guzzlehttp\promises\src\functions.php on line 307
+PHPUnit 9.6.34 by Sebastian Bergmann and contributors.
+
+E                                                                   1 / 1 (100%)
+Deprecated: voku\helper\ASCII::to_ascii(): Implicitly marking parameter $replace_single_chars_only as nullable is deprecated, the explicit nullable type must be used instead in J:\Web Development\abir\package\Fraud-Checker-BD-Courier\vendor\voku\portable-ascii\src\voku\helper\ASCII.php on line 830
+
+
+Time: 00:00.058, Memory: 16.00 MB
+
+There was 1 error:
+
+1) Azmolla\FraudCheckerBdCourier\Tests\Unit\PathaoServiceTest::test_pathao_successful_fetch
+Error: Class "GuzzleHttp\HandlerStack" not found
+
+J:\Web Development\abir\package\Fraud-Checker-BD-Courier\vendor\laravel\framework\src\Illuminate\Http\Client\PendingRequest.php:870
+J:\Web Development\abir\package\Fraud-Checker-BD-Courier\vendor\laravel\framework\src\Illuminate\Http\Client\PendingRequest.php:826
+J:\Web Development\abir\package\Fraud-Checker-BD-Courier\vendor\laravel\framework\src\Illuminate\Http\Client\PendingRequest.php:767
+J:\Web Development\abir\package\Fraud-Checker-BD-Courier\vendor\laravel\framework\src\Illuminate\Http\Client\PendingRequest.php:699
+J:\Web Development\abir\package\Fraud-Checker-BD-Courier\vendor\laravel\framework\src\Illuminate\Support\helpers.php:247
+J:\Web Development\abir\package\Fraud-Checker-BD-Courier\vendor\laravel\framework\src\Illuminate\Http\Client\PendingRequest.php:697
+J:\Web Development\abir\package\Fraud-Checker-BD-Courier\vendor\laravel\framework\src\Illuminate\Http\Client\PendingRequest.php:595
+J:\Web Development\abir\package\Fraud-Checker-BD-Courier\vendor\laravel\framework\src\Illuminate\Http\Client\Factory.php:392
+J:\Web Development\abir\package\Fraud-Checker-BD-Courier\vendor\laravel\framework\src\Illuminate\Support\Facades\Facade.php:261
+J:\Web Development\abir\package\Fraud-Checker-BD-Courier\src\Services\PathaoService.php:28
+J:\Web Development\abir\package\Fraud-Checker-BD-Courier\tests\Unit\PathaoServiceTest.php:31
+
+ERRORS!
+Tests: 1, Assertions: 0, Errors: 1.
