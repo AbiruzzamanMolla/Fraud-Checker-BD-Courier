@@ -1,6 +1,6 @@
 {
   "name": "azmolla/fraud-checker-bd-courier",
-  "description": "A fraud detection tool for e-commerce platforms to analyze customer order behavior across Steadfast and Pathao couriers.",
+  "description": "A fraud detection tool for e-commerce platforms to analyze customer order behavior across Steadfast, RedX and Pathao couriers.",
   "type": "library",
   "license": "GPL-3.0",
   "keywords": [
