@@ -6,7 +6,9 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Cache;
 use Azmolla\FraudCheckerBdCourier\Helpers\CourierFraudCheckerHelper;
 
-readonly class RedxService
+use Azmolla\FraudCheckerBdCourier\Contracts\CourierServiceInterface;
+
+readonly class RedxService implements CourierServiceInterface
 {
     protected string $cacheKey;
     protected int $cacheMinutes;
@@ -60,7 +62,7 @@ readonly class RedxService
         return $token;
     }
 
-    public function getCustomerDeliveryStats(string $queryPhone): array
+    public function getDeliveryStats(string $queryPhone): array
     {
         CourierFraudCheckerHelper::validatePhoneNumber($queryPhone);
 

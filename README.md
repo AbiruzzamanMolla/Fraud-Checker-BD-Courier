@@ -116,7 +116,9 @@ The package automatically validates phone numbers with this regex:
 
 ---
 
-## 🛠️ Advanced Usage
+## 🛠️ Advanced Usage (SOLID Principles)
+
+In Version 1.0.0, the package was refactored to adhere to SOLID principles. All specific courier services now implement the `Azmolla\FraudCheckerBdCourier\Contracts\CourierServiceInterface`, which enforces the standard `getDeliveryStats(string $phoneNumber): array` method. This makes the codebase extremely DRY and allows for easy expansion in the future simply by binding new classes to the interface.
 
 ### Using Individual Services
 
@@ -125,9 +127,10 @@ use Azmolla\FraudCheckerBdCourier\Services\PathaoService;
 use Azmolla\FraudCheckerBdCourier\Services\SteadfastService;
 use Azmolla\FraudCheckerBdCourier\Services\RedxService;
 
-$pathao = (new PathaoService())->pathao('01712345678');
-$steadfast = (new SteadfastService())->steadfast('01712345678');
-$redx = (new RedxService())->getCustomerDeliveryStats('01712345678');
+// All classes implement CourierServiceInterface
+$pathao = (new PathaoService())->getDeliveryStats('01712345678');
+$steadfast = (new SteadfastService())->getDeliveryStats('01712345678');
+$redx = (new RedxService())->getDeliveryStats('01712345678');
 ```
 
 ### Custom Validation Rules

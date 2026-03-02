@@ -2,24 +2,22 @@
 
 namespace Azmolla\FraudCheckerBdCourier;
 
-use Azmolla\FraudCheckerBdCourier\Services\SteadfastService;
-use Azmolla\FraudCheckerBdCourier\Services\PathaoService;
-use Azmolla\FraudCheckerBdCourier\Services\RedxService;
+use Azmolla\FraudCheckerBdCourier\Contracts\CourierServiceInterface;
 
 class FraudCheckerBdCourierManager
 {
     public function __construct(
-        protected readonly SteadfastService $steadfastService,
-        protected readonly PathaoService $pathaoService,
-        protected readonly RedxService $redxService,
+        protected readonly CourierServiceInterface $steadfastService,
+        protected readonly CourierServiceInterface $pathaoService,
+        protected readonly CourierServiceInterface $redxService,
     ) {}
 
     public function check(string $phoneNumber): array
     {
         return [
-            'steadfast' => $this->steadfastService->steadfast($phoneNumber),
-            'pathao' => $this->pathaoService->pathao($phoneNumber),
-            'redx' => $this->redxService->getCustomerDeliveryStats($phoneNumber),
+            'steadfast' => $this->steadfastService->getDeliveryStats($phoneNumber),
+            'pathao' => $this->pathaoService->getDeliveryStats($phoneNumber),
+            'redx' => $this->redxService->getDeliveryStats($phoneNumber),
         ];
     }
 }

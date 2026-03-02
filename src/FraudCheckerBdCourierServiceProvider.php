@@ -3,6 +3,9 @@
 namespace Azmolla\FraudCheckerBdCourier;
 
 use Illuminate\Support\ServiceProvider;
+use Azmolla\FraudCheckerBdCourier\Services\SteadfastService;
+use Azmolla\FraudCheckerBdCourier\Services\PathaoService;
+use Azmolla\FraudCheckerBdCourier\Services\RedxService;
 use Azmolla\FraudCheckerBdCourier\FraudCheckerBdCourierManager;
 
 class FraudCheckerBdCourierServiceProvider extends ServiceProvider
@@ -22,6 +25,12 @@ class FraudCheckerBdCourierServiceProvider extends ServiceProvider
             'fraud-checker-bd-courier'
         );
 
-        $this->app->singleton('fraud-checker-bd-courier', FraudCheckerBdCourierManager::class);
+        $this->app->singleton('fraud-checker-bd-courier', function ($app) {
+            return new FraudCheckerBdCourierManager(
+                $app->make(SteadfastService::class),
+                $app->make(PathaoService::class),
+                $app->make(RedxService::class)
+            );
+        });
     }
 }

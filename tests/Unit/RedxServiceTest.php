@@ -35,7 +35,7 @@ class RedxServiceTest extends TestCase
         ]);
 
         $service = new RedxService();
-        $result = $service->getCustomerDeliveryStats($phone);
+        $result = $service->getDeliveryStats($phone);
 
         $this->assertEquals([
             'success' => 20,

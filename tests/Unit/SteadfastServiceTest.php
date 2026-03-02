@@ -31,7 +31,7 @@ class SteadfastServiceTest extends TestCase
         ]);
 
         $service = new SteadfastService();
-        $result = $service->steadfast($phone);
+        $result = $service->getDeliveryStats($phone);
 
         $this->assertEquals([
             'success' => 5,

@@ -27,8 +27,10 @@ class PathaoServiceTest extends TestCase
             ], 200),
         ]);
 
-        $service = new PathaoService();
-        $result = $service->pathao($phone);
+        $pathaoService = new PathaoService();
+
+        // Execute function
+        $result = $pathaoService->getDeliveryStats('01712345678');
 
         $this->assertEquals([
             'success' => 10,
