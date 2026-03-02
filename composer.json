@@ -5,25 +5,15 @@
   "license": "GPL-3.0",
   "keywords": [
     "fraud detection",
-    "e-commerce",
-    "order tracking",
-    "courier",
-    "delivery",
-    "customer behavior",
+    "courier bangladesh",
     "fraud checker",
     "pathao",
     "steadfast courier",
-    "shipping",
-    "order management",
+    "redx",
     "fraud prevention",
-    "order cancellation",
-    "Laravel package",
     "e-commerce fraud",
     "order status",
-    "API integration",
-    "order verification",
-    "Laravel fraud checker",
-    "delivery tracking"
+    "API integration"
   ],
   "autoload": {
     "psr-4": {
@@ -45,11 +35,22 @@
       }
     }
   },
+  "publisher": "azmolla",
   "authors": [
     {
-      "name": "Azmolla"
+      "name": "Abiruzzaman Molla",
+      "email": "abiruzzaman.molla@gmail.com",
+      "role": "Backend Developer"
     }
   ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/AbiruzzamanMolla/Fraud-Checker-BD-Courier.git"
+  },
+  "bugs": {
+    "url": "https://github.com/AbiruzzamanMolla/Fraud-Checker-BD-Courier/issues"
+  },
+  "homepage": "https://github.com/AbiruzzamanMolla/Fraud-Checker-BD-Courier",
   "minimum-stability": "dev",
   "require": {
     "php": "^7.3|^8.0",
