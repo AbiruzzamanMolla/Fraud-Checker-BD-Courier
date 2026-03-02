@@ -8,13 +8,16 @@ use Azmolla\FraudCheckerBdCourier\Helpers\CourierFraudCheckerHelper;
 
 class RedxService
 {
-    protected string $cacheKey = 'redx_access_token';
-    protected int $cacheMinutes = 50;
-    protected string $phone;
-    protected string $password;
+    protected readonly string $cacheKey;
+    protected readonly int $cacheMinutes;
+    protected readonly string $phone;
+    protected readonly string $password;
 
     public function __construct()
     {
+        $this->cacheKey = 'redx_access_token';
+        $this->cacheMinutes = 50;
+
         // Validate config presence
         CourierFraudCheckerHelper::checkRequiredConfig([
             'fraud-checker-bd-courier.redx.phone',
@@ -96,5 +99,3 @@ class RedxService
         ];
     }
 }
-
-?>

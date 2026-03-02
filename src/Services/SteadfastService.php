@@ -7,8 +7,8 @@ use Azmolla\FraudCheckerBdCourier\Helpers\CourierFraudCheckerHelper;
 
 class SteadfastService
 {
-    protected string $email;
-    protected string $password;
+    protected readonly string $email;
+    protected readonly string $password;
 
     public function __construct()
     {

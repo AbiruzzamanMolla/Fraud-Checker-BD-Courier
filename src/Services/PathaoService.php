@@ -7,8 +7,8 @@ use Azmolla\FraudCheckerBdCourier\Helpers\CourierFraudCheckerHelper;
 
 class PathaoService
 {
-    protected string $username;
-    protected string $password;
+    protected readonly string $username;
+    protected readonly string $password;
 
     public function __construct()
     {
