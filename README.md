@@ -1,6 +1,6 @@
-# Courier Fraud Checker BD for Laravel
+# Fraud Checker BD Courier for Laravel
 
-A Laravel package to detect potential fraudulent orders by checking customer delivery behavior through Pathao and Steadfast courier services in Bangladesh.
+A fraud detection tool for Laravel to analyze customer order behavior across Steadfast, RedX and Pathao couriers.
 
 ---
 
@@ -172,6 +172,13 @@ composer require --dev orchestra/testbench:"^6.0" phpunit/phpunit:"^9.5" guzzleh
 2. **Invalid Phone Number Format**
    - Must use local (BD) format like `01712345678`
    - Do **not** include `+88` prefix
+
+---
+
+## 👨‍💻 Author
+
+- **Abiruzzaman Molla** - [abiruzzaman.molla@gmail.com](mailto:abiruzzaman.molla@gmail.com)
+- GitHub: [@AbiruzzamanMolla](https://github.com/AbiruzzamanMolla)
 
 ---
 
