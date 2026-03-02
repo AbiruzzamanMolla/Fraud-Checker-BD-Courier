@@ -36,6 +36,7 @@ class PathaoServiceTest extends TestCase
             'success' => 10,
             'cancel' => 2,
             'total' => 12,
+            'success_ratio' => 83.33,
         ], $result);
     }
 }

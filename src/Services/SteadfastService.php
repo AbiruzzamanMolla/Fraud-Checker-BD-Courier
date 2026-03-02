@@ -74,10 +74,16 @@ readonly class SteadfastService implements CourierServiceInterface
 
         $object = $authResponse->collect()->toArray();
 
+        $success = (int)($object['total_delivered'] ?? 0);
+        $cancel = (int)($object['total_cancelled'] ?? 0);
+        $total = $success + $cancel;
+        $success_ratio = $total > 0 ? round(($success / $total) * 100, 2) : 0;
+
         $result = [
-            'success' => $object['total_delivered'] ?? 0,
-            'cancel' => $object['total_cancelled'] ?? 0,
-            'total'  => ($object['total_delivered'] ?? 0) + ($object['total_cancelled'] ?? 0),
+            'success' => $success,
+            'cancel' => $cancel,
+            'total'  => $total,
+            'success_ratio' => $success_ratio,
         ];
 
         // Step 4: Logout

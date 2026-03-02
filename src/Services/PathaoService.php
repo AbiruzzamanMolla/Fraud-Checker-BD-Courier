@@ -56,10 +56,16 @@ readonly class PathaoService implements CourierServiceInterface
 
         $object = $responseAuth->json();
 
+        $success = (int)($object['data']['customer']['successful_delivery'] ?? 0);
+        $total = (int)($object['data']['customer']['total_delivery'] ?? 0);
+        $cancel = max(0, $total - $success);
+        $success_ratio = $total > 0 ? round(($success / $total) * 100, 2) : 0;
+
         return [
-            'success' => $object['data']['customer']['successful_delivery'] ?? 0,
-            'cancel' => ($object['data']['customer']['total_delivery'] ?? 0) - ($object['data']['customer']['successful_delivery'] ?? 0),
-            'total' => $object['data']['customer']['total_delivery'] ?? 0,
+            'success' => $success,
+            'cancel' => $cancel,
+            'total' => $total,
+            'success_ratio' => $success_ratio,
         ];
     }
 }

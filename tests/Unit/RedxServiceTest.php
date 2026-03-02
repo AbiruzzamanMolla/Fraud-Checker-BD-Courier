@@ -41,6 +41,7 @@ class RedxServiceTest extends TestCase
             'success' => 20,
             'cancel' => 5,
             'total' => 25,
+            'success_ratio' => 80.0,
         ], $result);
     }
 }

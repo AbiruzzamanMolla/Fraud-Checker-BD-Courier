@@ -82,12 +82,16 @@ readonly class RedxService implements CourierServiceInterface
         if ($response->successful()) {
             $object = $response->json();
 
+            $success = (int)($object['data']['deliveredParcels'] ?? 0);
+            $total = (int)($object['data']['totalParcels'] ?? 0);
+            $cancel = max(0, $total - $success);
+            $success_ratio = $total > 0 ? round(($success / $total) * 100, 2) : 0;
+
             return [
-                'success' => (int)($object['data']['deliveredParcels'] ?? 0),
-                'cancel' => isset($object['data']['totalParcels'], $object['data']['deliveredParcels'])
-                    ? ((int)$object['data']['totalParcels'] - (int)$object['data']['deliveredParcels'])
-                    : 0,
-                'total' => (int)($object['data']['totalParcels'] ?? 0),
+                'success' => $success,
+                'cancel' => $cancel,
+                'total' => $total,
+                'success_ratio' => $success_ratio,
             ];
         } elseif ($response->status() === 401) {
             Cache::forget($this->cacheKey);
@@ -95,9 +99,11 @@ readonly class RedxService implements CourierServiceInterface
         }
 
         return [
-            'success' => 'Threshold hit, wait a minute',
-            'cancel' => 'Threshold hit, wait a minute',
-            'total' => 'Threshold hit, wait a minute',
+            'success' => 0,
+            'cancel' => 0,
+            'total' => 0,
+            'success_ratio' => 0,
+            'error' => 'Threshold hit, wait a minute',
         ];
     }
 }

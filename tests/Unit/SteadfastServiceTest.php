@@ -37,6 +37,7 @@ class SteadfastServiceTest extends TestCase
             'success' => 5,
             'cancel' => 2,
             'total' => 7,
+            'success_ratio' => 71.43,
         ], $result);
     }
 }

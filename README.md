@@ -87,9 +87,9 @@ print_r($result);
 
 ```php
 [
-    'steadfast' => ['success' => 3, 'cancel' => 1, 'total' => 4],
-    'pathao' => ['success' => 5, 'cancel' => 2, 'total' => 7],
-    'redx' => ['success' => 20, 'cancel' => 5, 'total' => 25],
+    'steadfast' => ['success' => 3, 'cancel' => 1, 'total' => 4, 'success_ratio' => 75.0],
+    'pathao' => ['success' => 5, 'cancel' => 2, 'total' => 7, 'success_ratio' => 71.43],
+    'redx' => ['success' => 20, 'cancel' => 5, 'total' => 25, 'success_ratio' => 80.0],
 ]
 ```
 
