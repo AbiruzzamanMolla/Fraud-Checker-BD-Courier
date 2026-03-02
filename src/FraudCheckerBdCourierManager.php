@@ -14,10 +14,56 @@ class FraudCheckerBdCourierManager
 
     public function check(string $phoneNumber): array
     {
-        return [
-            'steadfast' => $this->steadfastService->getDeliveryStats($phoneNumber),
-            'pathao' => $this->pathaoService->getDeliveryStats($phoneNumber),
-            'redx' => $this->redxService->getDeliveryStats($phoneNumber),
+        $payload = [
+            'steadfast' => null,
+            'pathao' => null,
+            'redx' => null,
+            'aggregate' => [
+                'total_success' => 0,
+                'total_cancel' => 0,
+                'total_deliveries' => 0,
+                'success_ratio' => 0,
+                'cancel_ratio' => 0,
+            ]
         ];
+
+        $services = [
+            'steadfast' => $this->steadfastService,
+            'pathao' => $this->pathaoService,
+            'redx' => $this->redxService,
+        ];
+
+        $totalSuccessCount = 0;
+        $totalCancelCount = 0;
+
+        foreach ($services as $key => $service) {
+            try {
+                $stats = $service->getDeliveryStats($phoneNumber);
+                $payload[$key] = $stats;
+
+                if (isset($stats['success'], $stats['cancel']) && is_numeric($stats['success']) && is_numeric($stats['cancel'])) {
+                    $totalSuccessCount += (int)$stats['success'];
+                    $totalCancelCount += (int)$stats['cancel'];
+                }
+            } catch (\Exception $e) {
+                $payload[$key] = [
+                    'error' => 'Service unavailable or failed to process',
+                    'message' => $e->getMessage()
+                ];
+            }
+        }
+
+        $overallTotal = $totalSuccessCount + $totalCancelCount;
+
+        $payload['aggregate']['total_success'] = $totalSuccessCount;
+        $payload['aggregate']['total_cancel'] = $totalCancelCount;
+        $payload['aggregate']['total_deliveries'] = $overallTotal;
+
+        if ($overallTotal > 0) {
+            $payload['aggregate']['success_ratio'] = round(($totalSuccessCount / $overallTotal) * 100, 2);
+            $payload['aggregate']['cancel_ratio'] = round(($totalCancelCount / $overallTotal) * 100, 2);
+        }
+
+        return $payload;
     }
 }

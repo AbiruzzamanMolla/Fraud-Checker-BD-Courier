@@ -78,7 +78,7 @@ REDX_PASSWORD=your_redx_password
 ```php
 use FraudCheckerBdCourier;
 
-$result = FraudCheckerBdCourier::check('01886607475');
+$result = FraudCheckerBdCourier::check('01712345678');
 
 print_r($result);
 ```
@@ -90,6 +90,13 @@ print_r($result);
     'steadfast' => ['success' => 3, 'cancel' => 1, 'total' => 4, 'success_ratio' => 75.0],
     'pathao' => ['success' => 5, 'cancel' => 2, 'total' => 7, 'success_ratio' => 71.43],
     'redx' => ['success' => 20, 'cancel' => 5, 'total' => 25, 'success_ratio' => 80.0],
+    'aggregate' => [
+        'total_success' => 28,
+        'total_cancel' => 8,
+        'total_deliveries' => 36,
+        'success_ratio' => 77.78,
+        'cancel_ratio' => 22.22
+    ]
 ]
 ```
 
