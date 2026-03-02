@@ -6,12 +6,12 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Cache;
 use Azmolla\FraudCheckerBdCourier\Helpers\CourierFraudCheckerHelper;
 
-class RedxService
+readonly class RedxService
 {
-    protected readonly string $cacheKey;
-    protected readonly int $cacheMinutes;
-    protected readonly string $phone;
-    protected readonly string $password;
+    protected string $cacheKey;
+    protected int $cacheMinutes;
+    protected string $phone;
+    protected string $password;
 
     public function __construct()
     {
@@ -31,7 +31,7 @@ class RedxService
         CourierFraudCheckerHelper::validatePhoneNumber($this->phone);
     }
 
-    protected function getAccessToken()
+    protected function getAccessToken(): ?string
     {
         // Use cached token if available
         $token = Cache::get($this->cacheKey);
@@ -60,7 +60,7 @@ class RedxService
         return $token;
     }
 
-    public function getCustomerDeliveryStats(string $queryPhone)
+    public function getCustomerDeliveryStats(string $queryPhone): array
     {
         CourierFraudCheckerHelper::validatePhoneNumber($queryPhone);
 

@@ -5,7 +5,7 @@ namespace Azmolla\FraudCheckerBdCourier\Facade;
 use Illuminate\Support\Facades\Facade;
 
 /**
- * @method static array check($phoneNumber)
+ * @method static array check(string $phoneNumber)
  */
 class FraudCheckerBdCourier extends Facade
 {

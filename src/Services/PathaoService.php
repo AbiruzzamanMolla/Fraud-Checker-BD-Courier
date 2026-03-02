@@ -5,10 +5,10 @@ namespace Azmolla\FraudCheckerBdCourier\Services;
 use Illuminate\Support\Facades\Http;
 use Azmolla\FraudCheckerBdCourier\Helpers\CourierFraudCheckerHelper;
 
-class PathaoService
+readonly class PathaoService
 {
-    protected readonly string $username;
-    protected readonly string $password;
+    protected string $username;
+    protected string $password;
 
     public function __construct()
     {
@@ -21,7 +21,7 @@ class PathaoService
         $this->password = config('fraud-checker-bd-courier.pathao.password');
     }
 
-    public function pathao($phoneNumber)
+    public function pathao(string $phoneNumber): array
     {
         CourierFraudCheckerHelper::validatePhoneNumber($phoneNumber);
 

@@ -13,7 +13,7 @@ class CourierFraudCheckerHelper
      * @param array $requiredEnv
      * @throws InvalidArgumentException
      */
-    public static function checkRequiredEnv(array $requiredEnv)
+    public static function checkRequiredEnv(array $requiredEnv): void
     {
         foreach ($requiredEnv as $envVar) {
             if (empty(env($envVar))) {
@@ -29,7 +29,7 @@ class CourierFraudCheckerHelper
      * @throws InvalidArgumentException
      */
     // Validate if the phone number is a valid Bangladeshi phone number
-    public static function validatePhoneNumber($phoneNumber)
+    public static function validatePhoneNumber(string $phoneNumber): void
     {
         $validator = Validator::make(
             ['phone' => $phoneNumber],
@@ -51,7 +51,7 @@ class CourierFraudCheckerHelper
 
 
     // CourierFraudCheckerHelper.php
-    public static function checkRequiredConfig(array $requiredKeys)
+    public static function checkRequiredConfig(array $requiredKeys): void
     {
         foreach ($requiredKeys as $key) {
             if (empty(config($key))) {

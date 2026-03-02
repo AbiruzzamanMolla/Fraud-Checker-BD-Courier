@@ -5,10 +5,10 @@ namespace Azmolla\FraudCheckerBdCourier\Services;
 use Illuminate\Support\Facades\Http;
 use Azmolla\FraudCheckerBdCourier\Helpers\CourierFraudCheckerHelper;
 
-class SteadfastService
+readonly class SteadfastService
 {
-    protected readonly string $email;
-    protected readonly string $password;
+    protected string $email;
+    protected string $password;
 
     public function __construct()
     {
@@ -21,7 +21,7 @@ class SteadfastService
         $this->password = config('fraud-checker-bd-courier.steadfast.password');
     }
 
-    public function steadfast($phoneNumber)
+    public function steadfast(string $phoneNumber): array
     {
         CourierFraudCheckerHelper::validatePhoneNumber($phoneNumber);
 
