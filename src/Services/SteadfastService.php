@@ -2,7 +2,10 @@
 
 namespace Azmolla\FraudCheckerBdCourier\Services;
 
-use Illuminate\Support\Facades\Http;
+use GuzzleHttp\Client;
+use GuzzleHttp\Cookie\CookieJar;
+use GuzzleHttp\Exception\GuzzleException;
+use Azmolla\FraudCheckerBdCourier\Config\FraudCheckerConfig;
 use Azmolla\FraudCheckerBdCourier\Helpers\CourierDataValidator;
 
 use Azmolla\FraudCheckerBdCourier\Contracts\CourierServiceInterface;
@@ -28,19 +31,26 @@ readonly class SteadfastService implements CourierServiceInterface
     protected string $password;
 
     /**
+     * @var Client
+     */
+    protected Client $httpClient;
+
+    /**
      * SteadfastService constructor.
      *
-     * Validates configuration and initializes the required credentials.
+     * @param FraudCheckerConfig $config
+     * @param Client|null        $httpClient
      */
-    public function __construct()
+    public function __construct(FraudCheckerConfig $config, ?Client $httpClient = null)
     {
-        CourierDataValidator::enforceConfig([
-            'fraud-checker-bd-courier.steadfast.user',
-            'fraud-checker-bd-courier.steadfast.password',
+        CourierDataValidator::enforceConfig($config, [
+            'steadfast.user',
+            'steadfast.password',
         ]);
 
-        $this->email = config('fraud-checker-bd-courier.steadfast.user');
-        $this->password = config('fraud-checker-bd-courier.steadfast.password');
+        $this->email = $config->get('steadfast.user');
+        $this->password = $config->get('steadfast.password');
+        $this->httpClient = $httpClient ?? new Client(['timeout' => 15.0, 'cookies' => true]);
     }
 
     /**
@@ -58,52 +68,50 @@ readonly class SteadfastService implements CourierServiceInterface
         try {
             CourierDataValidator::checkBdMobile($phoneNumber);
 
+            $cookieJar = new CookieJar();
+
             // Step 1: Fetch login page
-            $response = Http::get('https://steadfast.com.bd/login');
+            $response = $this->httpClient->get('https://steadfast.com.bd/login', [
+                'cookies' => $cookieJar,
+                'http_errors' => false,
+            ]);
 
             // Extract CSRF token
-            preg_match('/<input type="hidden" name="_token" value="(.*?)"/', $response->body(), $matches);
+            preg_match('/<input type="hidden" name="_token" value="(.*?)"/', $response->getBody()->getContents(), $matches);
             $token = $matches[1] ?? null;
 
             if (!$token) {
                 return ['error' => 'CSRF token not found for Steadfast login'];
             }
 
-            // Convert CookieJar to array
-            $rawCookies = $response->cookies();
-            $cookiesArray = [];
-            foreach ($rawCookies->toArray() as $cookie) {
-                $cookiesArray[$cookie['Name']] = $cookie['Value'];
-            }
-
             // Step 2: Log in
-            $loginResponse = Http::withCookies($cookiesArray, 'steadfast.com.bd')
-                ->asForm()
-                ->post('https://steadfast.com.bd/login', [
+            $loginResponse = $this->httpClient->post('https://steadfast.com.bd/login', [
+                'cookies' => $cookieJar,
+                'form_params' => [
                     '_token' => $token,
                     'email' => $this->email,
                     'password' => $this->password,
-                ]);
+                ],
+                'http_errors' => false,
+                'allow_redirects' => false, // Capture redirect
+            ]);
 
-            if (!($loginResponse->successful() || $loginResponse->redirect())) {
-                return ['error' => 'Login to Steadfast failed', 'status' => $loginResponse->status()];
-            }
-
-            // Rebuild cookies after login
-            $loginCookiesArray = [];
-            foreach ($loginResponse->cookies()->toArray() as $cookie) {
-                $loginCookiesArray[$cookie['Name']] = $cookie['Value'];
+            $status = $loginResponse->getStatusCode();
+            if ($status >= 400 && $status !== 302) {
+                return ['error' => 'Login to Steadfast failed', 'status' => $status];
             }
 
             // Step 3: Access fraud data
-            $authResponse = Http::withCookies($loginCookiesArray, 'steadfast.com.bd')
-                ->get("https://steadfast.com.bd/user/frauds/check/{$phoneNumber}");
+            $authResponse = $this->httpClient->get("https://steadfast.com.bd/user/frauds/check/{$phoneNumber}", [
+                'cookies' => $cookieJar,
+                'http_errors' => false,
+            ]);
 
-            if (!$authResponse->successful()) {
-                return ['error' => 'Failed to fetch fraud data from Steadfast', 'status' => $authResponse->status()];
+            if ($authResponse->getStatusCode() >= 400) {
+                return ['error' => 'Failed to fetch fraud data from Steadfast', 'status' => $authResponse->getStatusCode()];
             }
 
-            $object = $authResponse->collect()->toArray();
+            $object = json_decode($authResponse->getBody()->getContents(), true);
 
             $success = (int)($object['total_delivered'] ?? 0);
             $cancel = (int)($object['total_cancelled'] ?? 0);
@@ -118,25 +126,29 @@ readonly class SteadfastService implements CourierServiceInterface
             ];
 
             // Step 4: Logout
-            $logoutGET = Http::withCookies($loginCookiesArray, 'steadfast.com.bd')
-                ->get('https://steadfast.com.bd/user/frauds/check');
+            $logoutGET = $this->httpClient->get('https://steadfast.com.bd/user/frauds/check', [
+                'cookies' => $cookieJar,
+                'http_errors' => false,
+            ]);
 
-            if ($logoutGET->successful()) {
-                $html = $logoutGET->body();
+            if ($logoutGET->getStatusCode() < 400) {
+                $html = $logoutGET->getBody()->getContents();
 
                 if (preg_match('/<meta name="csrf-token" content="(.*?)"/', $html, $matches)) {
                     $csrfToken = $matches[1];
 
-                    Http::withCookies($loginCookiesArray, 'steadfast.com.bd')
-                        ->asForm()
-                        ->post('https://steadfast.com.bd/logout', [
+                    $this->httpClient->post('https://steadfast.com.bd/logout', [
+                        'cookies' => $cookieJar,
+                        'form_params' => [
                             '_token' => $csrfToken,
-                        ]);
+                        ],
+                        'http_errors' => false,
+                    ]);
                 }
             }
 
             return $result;
-        } catch (\Exception $e) {
+        } catch (GuzzleException | \Exception $e) {
             return [
                 'error' => 'An error occurred while processing Steadfast request',
                 'message' => $e->getMessage()

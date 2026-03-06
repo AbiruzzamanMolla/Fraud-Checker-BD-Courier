@@ -2,7 +2,9 @@
 
 namespace Azmolla\FraudCheckerBdCourier\Services;
 
-use Illuminate\Support\Facades\Http;
+use GuzzleHttp\Client;
+use GuzzleHttp\Exception\GuzzleException;
+use Azmolla\FraudCheckerBdCourier\Config\FraudCheckerConfig;
 use Azmolla\FraudCheckerBdCourier\Helpers\CourierDataValidator;
 
 use Azmolla\FraudCheckerBdCourier\Contracts\CourierServiceInterface;
@@ -28,19 +30,26 @@ readonly class PathaoService implements CourierServiceInterface
     protected string $password;
 
     /**
+     * @var Client
+     */
+    protected Client $httpClient;
+
+    /**
      * PathaoService constructor.
      *
-     * Validates configuration and initializes the API credentials.
+     * @param FraudCheckerConfig $config
+     * @param Client|null        $httpClient
      */
-    public function __construct()
+    public function __construct(FraudCheckerConfig $config, ?Client $httpClient = null)
     {
-        CourierDataValidator::enforceConfig([
-            'fraud-checker-bd-courier.pathao.user',
-            'fraud-checker-bd-courier.pathao.password',
+        CourierDataValidator::enforceConfig($config, [
+            'pathao.user',
+            'pathao.password',
         ]);
 
-        $this->username = config('fraud-checker-bd-courier.pathao.user');
-        $this->password = config('fraud-checker-bd-courier.pathao.password');
+        $this->username = $config->get('pathao.user');
+        $this->password = $config->get('pathao.password');
+        $this->httpClient = $httpClient ?? new Client(['timeout' => 15.0]);
     }
 
     /**
@@ -55,34 +64,41 @@ readonly class PathaoService implements CourierServiceInterface
         try {
             CourierDataValidator::checkBdMobile($phoneNumber);
 
-            $response = Http::post('https://merchant.pathao.com/api/v1/login', [
-                'username' => $this->username,
-                'password' => $this->password,
+            $response = $this->httpClient->post('https://merchant.pathao.com/api/v1/login', [
+                'json' => [
+                    'username' => $this->username,
+                    'password' => $this->password,
+                ],
+                'http_errors' => false,
             ]);
 
-            if (!$response->successful()) {
-                return ['error' => 'Failed to authenticate with Pathao', 'status' => $response->status()];
+            if ($response->getStatusCode() >= 400) {
+                return ['error' => 'Failed to authenticate with Pathao', 'status' => $response->getStatusCode()];
             }
 
-            $data = $response->json();
+            $data = json_decode($response->getBody()->getContents(), true);
             $accessToken = trim($data['access_token'] ?? '');
 
             if (!$accessToken) {
                 return ['error' => 'No access token received from Pathao'];
             }
 
-            $responseAuth = Http::withHeaders([
-                'Content-Type' => 'application/json',
-                'Authorization' => 'Bearer ' . $accessToken,
-            ])->post('https://merchant.pathao.com/api/v1/user/success', [
-                'phone' => $phoneNumber,
+            $responseAuth = $this->httpClient->post('https://merchant.pathao.com/api/v1/user/success', [
+                'headers' => [
+                    'Content-Type' => 'application/json',
+                    'Authorization' => 'Bearer ' . $accessToken,
+                ],
+                'json' => [
+                    'phone' => $phoneNumber,
+                ],
+                'http_errors' => false,
             ]);
 
-            if (!$responseAuth->successful()) {
-                return ['error' => 'Failed to retrieve customer data from Pathao', 'status' => $responseAuth->status()];
+            if ($responseAuth->getStatusCode() >= 400) {
+                return ['error' => 'Failed to retrieve customer data from Pathao', 'status' => $responseAuth->getStatusCode()];
             }
 
-            $object = $responseAuth->json();
+            $object = json_decode($responseAuth->getBody()->getContents(), true);
 
             $success = (int)($object['data']['customer']['successful_delivery'] ?? 0);
             $total = (int)($object['data']['customer']['total_delivery'] ?? 0);
@@ -95,7 +111,7 @@ readonly class PathaoService implements CourierServiceInterface
                 'total' => $total,
                 'success_ratio' => $success_ratio,
             ];
-        } catch (\Exception $e) {
+        } catch (GuzzleException | \Exception $e) {
             return [
                 'error' => 'An error occurred while processing Pathao request',
                 'message' => $e->getMessage()

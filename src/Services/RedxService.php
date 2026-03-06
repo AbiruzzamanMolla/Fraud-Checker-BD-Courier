@@ -2,8 +2,10 @@
 
 namespace Azmolla\FraudCheckerBdCourier\Services;
 
-use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Cache;
+use GuzzleHttp\Client;
+use GuzzleHttp\Exception\GuzzleException;
+use Azmolla\FraudCheckerBdCourier\Cache\FileTokenCache;
+use Azmolla\FraudCheckerBdCourier\Config\FraudCheckerConfig;
 use Azmolla\FraudCheckerBdCourier\Helpers\CourierDataValidator;
 
 use Azmolla\FraudCheckerBdCourier\Contracts\CourierServiceInterface;
@@ -39,24 +41,38 @@ readonly class RedxService implements CourierServiceInterface
     protected string $password;
 
     /**
+     * @var FileTokenCache
+     */
+    protected FileTokenCache $cache;
+
+    /**
+     * @var Client
+     */
+    protected Client $httpClient;
+
+    /**
      * RedxService constructor.
      *
-     * Validates configuration and prepares the authentication details.
+     * @param FraudCheckerConfig $config
+     * @param FileTokenCache     $cache
+     * @param Client|null        $httpClient
      */
-    public function __construct()
+    public function __construct(FraudCheckerConfig $config, FileTokenCache $cache, ?Client $httpClient = null)
     {
         $this->cacheKey = 'redx_access_token';
         $this->cacheMinutes = 50;
+        $this->cache = $cache;
+        $this->httpClient = $httpClient ?? new Client(['timeout' => 15.0]);
 
         // Validate config presence
-        CourierDataValidator::enforceConfig([
-            'fraud-checker-bd-courier.redx.phone',
-            'fraud-checker-bd-courier.redx.password',
+        CourierDataValidator::enforceConfig($config, [
+            'redx.phone',
+            'redx.password',
         ]);
 
         // Load from config
-        $this->phone = config('fraud-checker-bd-courier.redx.phone');
-        $this->password = config('fraud-checker-bd-courier.redx.password');
+        $this->phone = $config->get('redx.phone');
+        $this->password = $config->get('redx.password');
 
         CourierDataValidator::checkBdMobile($this->phone);
     }
@@ -69,30 +85,40 @@ readonly class RedxService implements CourierServiceInterface
     protected function getAccessToken(): ?string
     {
         // Use cached token if available
-        $token = Cache::get($this->cacheKey);
+        $token = $this->cache->get($this->cacheKey);
         if ($token) {
             return $token;
         }
 
         // Request new token from RedX
-        $response = Http::withHeaders([
-            'User-Agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)',
-            'Accept' => 'application/json, text/plain, */*',
-        ])->post('https://api.redx.com.bd/v4/auth/login', [
-            'phone' => '88' . $this->phone,
-            'password' => $this->password,
-        ]);
+        try {
+            $response = $this->httpClient->post('https://api.redx.com.bd/v4/auth/login', [
+                'headers' => [
+                    'User-Agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)',
+                    'Accept' => 'application/json, text/plain, */*',
+                ],
+                'json' => [
+                    'phone' => '88' . $this->phone,
+                    'password' => $this->password,
+                ],
+                'http_errors' => false,
+            ]);
 
-        if (!$response->successful()) {
+            if ($response->getStatusCode() >= 400) {
+                return null;
+            }
+
+            $data = json_decode($response->getBody()->getContents(), true);
+            $token = $data['data']['accessToken'] ?? null;
+
+            if ($token) {
+                $this->cache->put($this->cacheKey, $token, $this->cacheMinutes);
+            }
+
+            return $token;
+        } catch (GuzzleException $e) {
             return null;
         }
-
-        $token = $response->json('data.accessToken');
-        if ($token) {
-            Cache::put($this->cacheKey, $token, now()->addMinutes($this->cacheMinutes));
-        }
-
-        return $token;
     }
 
     /**
@@ -113,15 +139,21 @@ readonly class RedxService implements CourierServiceInterface
                 return ['error' => 'Login failed or unable to get access token from Redx'];
             }
 
-            $response = Http::withHeaders([
-                'User-Agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)',
-                'Accept' => 'application/json, text/plain, */*',
-                'Content-Type' => 'application/json',
-                'Authorization' => 'Bearer ' . $accessToken,
-            ])->get("https://redx.com.bd/api/redx_se/admin/parcel/customer-success-return-rate?phoneNumber=88{$queryPhone}");
+            $response = $this->httpClient->get("https://redx.com.bd/api/redx_se/admin/parcel/customer-success-return-rate", [
+                'headers' => [
+                    'User-Agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)',
+                    'Accept' => 'application/json, text/plain, */*',
+                    'Content-Type' => 'application/json',
+                    'Authorization' => 'Bearer ' . $accessToken,
+                ],
+                'query' => [
+                    'phoneNumber' => '88' . $queryPhone
+                ],
+                'http_errors' => false,
+            ]);
 
-            if ($response->successful()) {
-                $object = $response->json();
+            if ($response->getStatusCode() < 400) {
+                $object = json_decode($response->getBody()->getContents(), true);
 
                 $success = (int)($object['data']['deliveredParcels'] ?? 0);
                 $total = (int)($object['data']['totalParcels'] ?? 0);
@@ -134,8 +166,8 @@ readonly class RedxService implements CourierServiceInterface
                     'total' => $total,
                     'success_ratio' => $success_ratio,
                 ];
-            } elseif ($response->status() === 401) {
-                Cache::forget($this->cacheKey);
+            } elseif ($response->getStatusCode() === 401) {
+                $this->cache->forget($this->cacheKey);
                 return ['error' => 'Access token expired or invalid for Redx. Please retry.', 'status' => 401];
             }
 
@@ -145,9 +177,9 @@ readonly class RedxService implements CourierServiceInterface
                 'total' => 0,
                 'success_ratio' => 0,
                 'error' => 'Threshold hit, wait a minute for Redx',
-                'status' => $response->status(),
+                'status' => $response->getStatusCode(),
             ];
-        } catch (\Exception $e) {
+        } catch (GuzzleException | \Exception $e) {
             return [
                 'error' => 'An error occurred while processing Redx request',
                 'message' => $e->getMessage()

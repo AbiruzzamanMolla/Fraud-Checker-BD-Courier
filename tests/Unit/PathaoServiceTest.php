@@ -4,7 +4,11 @@ namespace Azmolla\FraudCheckerBdCourier\Tests\Unit;
 
 use Azmolla\FraudCheckerBdCourier\Tests\TestCase;
 use Azmolla\FraudCheckerBdCourier\Services\PathaoService;
-use Illuminate\Support\Facades\Http;
+use Azmolla\FraudCheckerBdCourier\Config\FraudCheckerConfig;
+use GuzzleHttp\Client;
+use GuzzleHttp\Handler\MockHandler;
+use GuzzleHttp\HandlerStack;
+use GuzzleHttp\Psr7\Response;
 
 class PathaoServiceTest extends TestCase
 {
@@ -12,22 +16,31 @@ class PathaoServiceTest extends TestCase
     {
         $phone = '01711111111';
 
-        Http::fake([
-            'https://merchant.pathao.com/api/v1/login' => Http::response([
+        $mock = new MockHandler([
+            new Response(200, [], json_encode([
                 'access_token' => 'fake_access_token_abc'
-            ], 200),
-
-            'https://merchant.pathao.com/api/v1/user/success' => Http::response([
+            ])),
+            new Response(200, [], json_encode([
                 'data' => [
                     'customer' => [
                         'successful_delivery' => 10,
                         'total_delivery' => 12
                     ]
                 ]
-            ], 200),
+            ]))
         ]);
 
-        $pathaoService = new PathaoService();
+        $handlerStack = HandlerStack::create($mock);
+        $client = new Client(['handler' => $handlerStack]);
+
+        $config = new FraudCheckerConfig([
+            'pathao' => [
+                'user' => 'test@test.com',
+                'password' => 'secret'
+            ]
+        ]);
+
+        $pathaoService = new PathaoService($config, $client);
 
         // Execute function
         $result = $pathaoService->getDeliveryStats('01712345678');

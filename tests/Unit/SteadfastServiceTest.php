@@ -4,7 +4,11 @@ namespace Azmolla\FraudCheckerBdCourier\Tests\Unit;
 
 use Azmolla\FraudCheckerBdCourier\Tests\TestCase;
 use Azmolla\FraudCheckerBdCourier\Services\SteadfastService;
-use Illuminate\Support\Facades\Http;
+use Azmolla\FraudCheckerBdCourier\Config\FraudCheckerConfig;
+use GuzzleHttp\Client;
+use GuzzleHttp\Handler\MockHandler;
+use GuzzleHttp\HandlerStack;
+use GuzzleHttp\Psr7\Response;
 
 class SteadfastServiceTest extends TestCase
 {
@@ -12,25 +16,28 @@ class SteadfastServiceTest extends TestCase
     {
         $phone = '01711111111';
 
-        Http::fake([
-            'https://steadfast.com.bd/login' => Http::sequence()
-                ->push('<input type="hidden" name="_token" value="fake_csrf_123">', 200)
-                ->push('Login Success', 302),
-
-            "https://steadfast.com.bd/user/frauds/check/{$phone}" => Http::response([
+        $mock = new MockHandler([
+            new Response(200, [], '<input type="hidden" name="_token" value="fake_csrf_123">'),
+            new Response(302, []),
+            new Response(200, [], json_encode([
                 'total_delivered' => 5,
                 'total_cancelled' => 2,
-            ], 200),
-
-            'https://steadfast.com.bd/user/frauds/check' => Http::response(
-                '<meta name="csrf-token" content="logout_csrf_123">',
-                200
-            ),
-
-            'https://steadfast.com.bd/logout' => Http::response('Logged out', 200),
+            ])),
+            new Response(200, [], '<meta name="csrf-token" content="logout_csrf_123">'),
+            new Response(200, [], 'Logged out')
         ]);
 
-        $service = new SteadfastService();
+        $handlerStack = HandlerStack::create($mock);
+        $client = new Client(['handler' => $handlerStack]);
+
+        $config = new FraudCheckerConfig([
+            'steadfast' => [
+                'user' => 'test@test.com',
+                'password' => 'secret'
+            ]
+        ]);
+
+        $service = new SteadfastService($config, $client);
         $result = $service->getDeliveryStats($phone);
 
         $this->assertEquals([

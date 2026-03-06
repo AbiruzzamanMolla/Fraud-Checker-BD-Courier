@@ -7,6 +7,8 @@ use Azmolla\FraudCheckerBdCourier\Services\SteadfastService;
 use Azmolla\FraudCheckerBdCourier\Services\PathaoService;
 use Azmolla\FraudCheckerBdCourier\Services\RedxService;
 use Azmolla\FraudCheckerBdCourier\FraudCheckerBdCourierManager;
+use Azmolla\FraudCheckerBdCourier\Config\FraudCheckerConfig;
+use Azmolla\FraudCheckerBdCourier\Cache\FileTokenCache;
 
 /**
  * Class FraudCheckerBdCourierServiceProvider
@@ -42,11 +44,35 @@ class FraudCheckerBdCourierServiceProvider extends ServiceProvider
             'fraud-checker-bd-courier'
         );
 
+        $this->app->singleton(FraudCheckerConfig::class, function ($app) {
+            return new FraudCheckerConfig($app['config']->get('fraud-checker-bd-courier', []));
+        });
+
+        $this->app->singleton(FileTokenCache::class, function ($app) {
+            return new FileTokenCache(storage_path('framework/cache/fraud_checker'));
+        });
+
+        $this->app->singleton(SteadfastService::class, function ($app) {
+            return new SteadfastService($app->make(FraudCheckerConfig::class));
+        });
+
+        $this->app->singleton(PathaoService::class, function ($app) {
+            return new PathaoService($app->make(FraudCheckerConfig::class));
+        });
+
+        $this->app->singleton(RedxService::class, function ($app) {
+            return new RedxService(
+                $app->make(FraudCheckerConfig::class),
+                $app->make(FileTokenCache::class)
+            );
+        });
+
         $this->app->singleton('fraud-checker-bd-courier', function ($app) {
             return new FraudCheckerBdCourierManager(
                 $app->make(SteadfastService::class),
                 $app->make(PathaoService::class),
-                $app->make(RedxService::class)
+                $app->make(RedxService::class),
+                $app->make(FraudCheckerConfig::class)
             );
         });
     }

@@ -2,7 +2,7 @@
 
 namespace Azmolla\FraudCheckerBdCourier\Helpers;
 
-use Illuminate\Support\Facades\Validator;
+use Azmolla\FraudCheckerBdCourier\Config\FraudCheckerConfig;
 use InvalidArgumentException;
 
 /**
@@ -16,16 +16,18 @@ use InvalidArgumentException;
 class CourierDataValidator
 {
     /**
-     * Verifies that the given environment variables exist.
+     * Verifies that the required config keys are set in the FraudCheckerConfig instance.
      *
-     * @param array $variables
+     * @param FraudCheckerConfig $config
+     * @param array              $requiredKeys
      * @throws InvalidArgumentException
      */
-    public static function enforceEnv(array $variables): void
+    public static function enforceConfig(FraudCheckerConfig $config, array $requiredKeys): void
     {
-        foreach ($variables as $var) {
-            if (empty(env($var))) {
-                throw new InvalidArgumentException(sprintf("The environment variable %s is required but missing.", $var));
+        foreach ($requiredKeys as $key) {
+            $value = $config->get($key);
+            if (empty($value)) {
+                throw new InvalidArgumentException(sprintf("The configuration key '%s' is required but missing.", $key));
             }
         }
     }
@@ -38,36 +40,12 @@ class CourierDataValidator
      */
     public static function checkBdMobile(string $mobileNumber): void
     {
-        $validation = Validator::make(
-            ['mobile' => $mobileNumber],
-            [
-                'mobile' => [
-                    'required',
-                    'regex:/^01[3-9][0-9]{8}$/'
-                ]
-            ],
-            [
-                'mobile.regex' => 'The provided phone number is invalid. Please format it locally (e.g., 01712345678) without +88.'
-            ]
-        );
-
-        if ($validation->fails()) {
-            throw new InvalidArgumentException($validation->errors()->first('mobile'));
+        if (empty($mobileNumber)) {
+            throw new InvalidArgumentException("Phone number cannot be empty.");
         }
-    }
 
-    /**
-     * Verifies that the given config keys are populated.
-     *
-     * @param array $configDefinitions
-     * @throws InvalidArgumentException
-     */
-    public static function enforceConfig(array $configDefinitions): void
-    {
-        foreach ($configDefinitions as $conf) {
-            if (empty(config($conf))) {
-                throw new InvalidArgumentException(sprintf("The config key %s is required but missing.", $conf));
-            }
+        if (!preg_match('/^01[3-9][0-9]{8}$/', $mobileNumber)) {
+            throw new InvalidArgumentException('The provided phone number is invalid. Please format it locally (e.g., 01712345678) without +88.');
         }
     }
 }

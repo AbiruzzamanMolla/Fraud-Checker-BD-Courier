@@ -3,6 +3,7 @@
 namespace Azmolla\FraudCheckerBdCourier;
 
 use Azmolla\FraudCheckerBdCourier\Contracts\CourierServiceInterface;
+use Azmolla\FraudCheckerBdCourier\Config\FraudCheckerConfig;
 
 /**
  * Class FraudCheckerBdCourierManager
@@ -15,6 +16,11 @@ use Azmolla\FraudCheckerBdCourier\Contracts\CourierServiceInterface;
 class FraudCheckerBdCourierManager
 {
     /**
+     * @var FraudCheckerConfig The configuration instance for the manager
+     */
+    protected FraudCheckerConfig $config;
+
+    /**
      * FraudCheckerBdCourierManager constructor.
      *
      * Initializes the manager with the required courier service instances.
@@ -22,12 +28,16 @@ class FraudCheckerBdCourierManager
      * @param CourierServiceInterface $steadfastService Instance of SteadfastService.
      * @param CourierServiceInterface $pathaoService    Instance of PathaoService.
      * @param CourierServiceInterface $redxService      Instance of RedxService.
+     * @param FraudCheckerConfig|null $config           Optional configuration.
      */
     public function __construct(
         protected readonly CourierServiceInterface $steadfastService,
         protected readonly CourierServiceInterface $pathaoService,
         protected readonly CourierServiceInterface $redxService,
-    ) {}
+        ?FraudCheckerConfig $config = null
+    ) {
+        $this->config = $config ?? new FraudCheckerConfig();
+    }
 
     /**
      * Fetch delivery statistics across all configured couriers and aggregate the results.

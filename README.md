@@ -1,6 +1,6 @@
 <div align="center">
   <h1>🛡️ Fraud Checker BD Courier</h1>
-  <p><strong>A powerful Laravel package to analyze customer delivery behavior across top Bangladeshi courier services.</strong></p>
+  <p><strong>A powerful framework-agnostic PHP package to analyze customer delivery behavior across top Bangladeshi courier services. (Fully supports Laravel out-of-the-box!)</strong></p>
   
   [![Latest Version on Packagist](https://img.shields.io/packagist/v/azmolla/fraud-checker-bd-courier.svg?style=flat-square)](https://packagist.org/packages/azmolla/fraud-checker-bd-courier)
   [![Total Downloads](https://img.shields.io/packagist/dt/azmolla/fraud-checker-bd-courier.svg?style=flat-square)](https://packagist.org/packages/azmolla/fraud-checker-bd-courier)
@@ -21,15 +21,14 @@ By checking a simple phone number, you get immediate insights into a customer's 
 - 🔍 **Multi-Courier Analytics:** Fetch delivery histories simultaneously from Steadfast, Pathao, and RedX.
 - 📊 **Aggregated Statistics:** Get a unified view of total deliveries, successes, cancellations, and percentages.
 - 📱 **Smart Number Validation:** Built-in strictly enforced validation for standard Bangladeshi mobile numbers (e.g., `017XXXXXXXX`).
-- 🏗️ **SOLID Architecture:** Highly decoupled under the hood. You can easily interact with individual couriers thanks to strict contract implementations.
-- ⚡ **Developer Friendly:** Simple Facade access and effortless Laravel integration.
+- 🏗️ **Framework-Agnostic Core:** Completely decoupled from Laravel. Use it in any native PHP, Symfony, or CodeIgniter project.
+- ⚡ **Laravel Friendly:** Simple Facade access and effortless Laravel auto-discovery integration are still included!
 
 ---
 
 ## 💻 Requirements
 
 - **PHP:** `^8.2.0`
-- **Laravel:** `10.x`, `11.x`, or `12.x`
 - **Guzzle:** `^7.8`
 
 ---
@@ -42,7 +41,7 @@ By checking a simple phone number, you get immediate insights into a customer's 
 composer require azmolla/fraud-checker-bd-courier
 ```
 
-**2. Publish Configuration File:**
+**2. Laravel Users - Publish Configuration File:**
 
 ```bash
 php artisan vendor:publish --tag="config"
@@ -54,28 +53,20 @@ _(Note: Laravel Auto-Discovery is fully supported. If you are using Laravel 5.4 
 
 ---
 
-## 🧩 Environment Setup
+## 🧩 Setup & Usage
 
-To authenticate with the respective courier APIs, strictly add your credentials to your application's `.env` file:
+### Usage in Laravel
+
+Add credentials to your `.env` file just like before:
 
 ```dotenv
-# Pathao Credentials
 PATHAO_USER="your_pathao_email@example.com"
 PATHAO_PASSWORD="your_pathao_password"
-
-# Steadfast Credentials
 STEADFAST_USER="your_steadfast_email@example.com"
 STEADFAST_PASSWORD="your_steadfast_password"
-
-# RedX Credentials
-# Use your registered phone number (without +880, e.g., 01712345678)
 REDX_PHONE="your_redx_login_phone_number"
 REDX_PASSWORD="your_redx_password"
 ```
-
----
-
-## 🚀 Quick Start
 
 Checking a customer's fraud probability is a one-liner using the provided Facade.
 
@@ -86,6 +77,52 @@ use FraudCheckerBdCourier;
 $report = FraudCheckerBdCourier::check('01712345678');
 
 dd($report);
+```
+
+### Usage in Pure PHP (or Non-Laravel Frameworks)
+
+Since Version 1.2.0, this package is completely decoupled from Laravel. You can instantiate it using the `FraudCheckerConfig` class:
+
+```php
+require 'vendor/autoload.php';
+
+use Azmolla\FraudCheckerBdCourier\Config\FraudCheckerConfig;
+use Azmolla\FraudCheckerBdCourier\Cache\FileTokenCache;
+use Azmolla\FraudCheckerBdCourier\Services\SteadfastService;
+use Azmolla\FraudCheckerBdCourier\Services\PathaoService;
+use Azmolla\FraudCheckerBdCourier\Services\RedxService;
+use Azmolla\FraudCheckerBdCourier\FraudCheckerBdCourierManager;
+
+// 1. Setup Configuration
+$config = new FraudCheckerConfig([
+    'steadfast' => [
+        'user' => 'your_steadfast_email@example.com',
+        'password' => 'your_steadfast_password'
+    ],
+    'pathao' => [
+        'user' => 'your_pathao_email@example.com',
+        'password' => 'your_pathao_password'
+    ],
+    'redx' => [
+        'phone' => 'your_redx_login_phone_number',
+        'password' => 'your_redx_password'
+    ]
+]);
+
+// 2. Setup Cache for RedX tokens (defaults to sys_get_temp_dir()/fraud_checker_cache)
+$cache = new FileTokenCache(__DIR__ . '/cache');
+
+// 3. Initialize Services
+$steadfastService = new SteadfastService($config);
+$pathaoService = new PathaoService($config);
+$redxService = new RedxService($config, $cache);
+
+// 4. Initialize Manager
+$fraudChecker = new FraudCheckerBdCourierManager($steadfastService, $pathaoService, $redxService, $config);
+
+// 5. Check Number
+$report = $fraudChecker->check('01712345678');
+print_r($report);
 ```
 
 ### 📈 Structural Response Example
@@ -161,12 +198,28 @@ composer test
 
 ---
 
+## 🙏 Acknowledgments
+
+Special thanks to **[S. Ahmad](https://github.com/ShahariarAhmad)** for the initial inspiration and discovering the API endpoints.
+
+---
+
 ## ‍💻 Created By
 
 **Abiruzzaman Molla**
 
 - 📧 Email: [abiruzzaman.molla@gmail.com](mailto:abiruzzaman.molla@gmail.com)
 - 🐙 GitHub: [@AbiruzzamanMolla](https://github.com/AbiruzzamanMolla)
+
+---
+
+## ☕ Support Me
+
+If you find this project useful, you can buy me a coffee!
+
+<a href="https://www.supportkori.com/abiruzzaman" target="_blank">
+  <img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" style="height: 60px !important;width: 217px !important;">
+</a>
 
 <br/>
 <div align="center">
