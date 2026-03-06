@@ -2,6 +2,15 @@
 
 namespace Azmolla\FraudCheckerBdCourier\Contracts;
 
+/**
+ * Interface CourierServiceInterface
+ *
+ * Defines the contract for all courier service integrations. Any new courier
+ * service added to the package must implement this interface to ensure
+ * consistency in fetching delivery statistics.
+ *
+ * @package Azmolla\FraudCheckerBdCourier\Contracts
+ */
 interface CourierServiceInterface
 {
     /**

@@ -3,18 +3,38 @@
 namespace Azmolla\FraudCheckerBdCourier\Services;
 
 use Illuminate\Support\Facades\Http;
-use Azmolla\FraudCheckerBdCourier\Helpers\CourierFraudCheckerHelper;
+use Azmolla\FraudCheckerBdCourier\Helpers\CourierDataValidator;
 
 use Azmolla\FraudCheckerBdCourier\Contracts\CourierServiceInterface;
 
+/**
+ * Class PathaoService
+ *
+ * Handles API interactions with Pathao courier to fetch delivery statistics
+ * for a specific customer phone number.
+ *
+ * @package Azmolla\FraudCheckerBdCourier\Services
+ */
 readonly class PathaoService implements CourierServiceInterface
 {
+    /**
+     * @var string The username for Pathao API authentication.
+     */
     protected string $username;
+
+    /**
+     * @var string The password for Pathao API authentication.
+     */
     protected string $password;
 
+    /**
+     * PathaoService constructor.
+     *
+     * Validates configuration and initializes the API credentials.
+     */
     public function __construct()
     {
-        CourierFraudCheckerHelper::checkRequiredConfig([
+        CourierDataValidator::enforceConfig([
             'fraud-checker-bd-courier.pathao.user',
             'fraud-checker-bd-courier.pathao.password',
         ]);
@@ -23,10 +43,17 @@ readonly class PathaoService implements CourierServiceInterface
         $this->password = config('fraud-checker-bd-courier.pathao.password');
     }
 
+    /**
+     * Fetch delivery statistics from Pathao for the given phone number.
+     *
+     * @param string $phoneNumber The Bangladeshi mobile number to check.
+     * @return array Contains 'success', 'cancel', 'total', and 'success_ratio'.
+     *               In case of an error, returns an array with an 'error' key.
+     */
     public function getDeliveryStats(string $phoneNumber): array
     {
         try {
-            CourierFraudCheckerHelper::validatePhoneNumber($phoneNumber);
+            CourierDataValidator::checkBdMobile($phoneNumber);
 
             $response = Http::post('https://merchant.pathao.com/api/v1/login', [
                 'username' => $this->username,
