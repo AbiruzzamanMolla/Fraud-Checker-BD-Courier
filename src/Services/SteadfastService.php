@@ -3,18 +3,38 @@
 namespace Azmolla\FraudCheckerBdCourier\Services;
 
 use Illuminate\Support\Facades\Http;
-use Azmolla\FraudCheckerBdCourier\Helpers\CourierFraudCheckerHelper;
+use Azmolla\FraudCheckerBdCourier\Helpers\CourierDataValidator;
 
 use Azmolla\FraudCheckerBdCourier\Contracts\CourierServiceInterface;
 
+/**
+ * Class SteadfastService
+ *
+ * Handles API interactions with Steadfast courier to fetch delivery statistics
+ * for a given customer phone number via their web interface.
+ *
+ * @package Azmolla\FraudCheckerBdCourier\Services
+ */
 readonly class SteadfastService implements CourierServiceInterface
 {
+    /**
+     * @var string The email address for Steadfast authentication.
+     */
     protected string $email;
+
+    /**
+     * @var string The password for Steadfast authentication.
+     */
     protected string $password;
 
+    /**
+     * SteadfastService constructor.
+     *
+     * Validates configuration and initializes the required credentials.
+     */
     public function __construct()
     {
-        CourierFraudCheckerHelper::checkRequiredConfig([
+        CourierDataValidator::enforceConfig([
             'fraud-checker-bd-courier.steadfast.user',
             'fraud-checker-bd-courier.steadfast.password',
         ]);
@@ -23,10 +43,20 @@ readonly class SteadfastService implements CourierServiceInterface
         $this->password = config('fraud-checker-bd-courier.steadfast.password');
     }
 
+    /**
+     * Fetch delivery statistics from Steadfast for the given phone number.
+     *
+     * This method handles the full login flow, extracts CSRF tokens, manages
+     * cookies, fetches the fraud data, and then gracefully logs out.
+     *
+     * @param string $phoneNumber The Bangladeshi mobile number to check.
+     * @return array Contains 'success', 'cancel', 'total', and 'success_ratio'.
+     *               Returns an array with an 'error' key if any step fails.
+     */
     public function getDeliveryStats(string $phoneNumber): array
     {
         try {
-            CourierFraudCheckerHelper::validatePhoneNumber($phoneNumber);
+            CourierDataValidator::checkBdMobile($phoneNumber);
 
             // Step 1: Fetch login page
             $response = Http::get('https://steadfast.com.bd/login');

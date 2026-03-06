@@ -8,8 +8,20 @@ use Azmolla\FraudCheckerBdCourier\Services\PathaoService;
 use Azmolla\FraudCheckerBdCourier\Services\RedxService;
 use Azmolla\FraudCheckerBdCourier\FraudCheckerBdCourierManager;
 
+/**
+ * Class FraudCheckerBdCourierServiceProvider
+ *
+ * Registers the package services and merges configurations into the Laravel container.
+ *
+ * @package Azmolla\FraudCheckerBdCourier
+ */
 class FraudCheckerBdCourierServiceProvider extends ServiceProvider
 {
+    /**
+     * Bootstrap any package services.
+     *
+     * @return void
+     */
     public function boot()
     {
         // Publish the config file on vendor:publish
@@ -18,6 +30,11 @@ class FraudCheckerBdCourierServiceProvider extends ServiceProvider
         ], 'config');
     }
 
+    /**
+     * Register any application services.
+     *
+     * @return void
+     */
     public function register()
     {
         $this->mergeConfigFrom(

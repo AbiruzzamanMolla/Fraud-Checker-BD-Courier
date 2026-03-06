@@ -4,14 +4,38 @@ namespace Azmolla\FraudCheckerBdCourier;
 
 use Azmolla\FraudCheckerBdCourier\Contracts\CourierServiceInterface;
 
+/**
+ * Class FraudCheckerBdCourierManager
+ *
+ * Core manager class responsible for aggregating delivery statistics
+ * from multiple courier services (Steadfast, Pathao, RedX).
+ *
+ * @package Azmolla\FraudCheckerBdCourier
+ */
 class FraudCheckerBdCourierManager
 {
+    /**
+     * FraudCheckerBdCourierManager constructor.
+     *
+     * Initializes the manager with the required courier service instances.
+     *
+     * @param CourierServiceInterface $steadfastService Instance of SteadfastService.
+     * @param CourierServiceInterface $pathaoService    Instance of PathaoService.
+     * @param CourierServiceInterface $redxService      Instance of RedxService.
+     */
     public function __construct(
         protected readonly CourierServiceInterface $steadfastService,
         protected readonly CourierServiceInterface $pathaoService,
         protected readonly CourierServiceInterface $redxService,
     ) {}
 
+    /**
+     * Fetch delivery statistics across all configured couriers and aggregate the results.
+     *
+     * @param string $phoneNumber The Bangladeshi mobile number to check.
+     * @return array Returns an associative array containing stats for each courier
+     *               as well as an overall aggregated summary.
+     */
     public function check(string $phoneNumber): array
     {
         $payload = [
