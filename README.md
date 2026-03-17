@@ -223,5 +223,5 @@ If you find this project useful, you can buy me a coffee!
 
 <br/>
 <div align="center">
-  <i>If you find this package helpful in fighting fraudulent orders, please consider starring the repository! ⭐</i>
+  <i>If you find this package helpful in fighting fraudulent orders, please consider starring the repository! ⭐ I hate arguing. If you have something to contribute or improve, please fork the repository, make your edits, and then submit a pull request.</i>
 </div>
